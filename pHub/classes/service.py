@@ -13,7 +13,7 @@ class PHubService:
             map_data = self.mapping_data(content)
             best_solution = self.get_best_solution(map_data, 20)
 
-        return {"message": "Transacción Existosa", "data": best_solution}
+        return {"message": "Transacción Exitosa", "data": best_solution}
 
     def get_best_solution(self, problem: Dict, iterations: int) -> Dict:
         solutions = []

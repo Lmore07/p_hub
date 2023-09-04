@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from pHub.views import phub_controller
+from pHubFront.views import subir_archivo
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('subir-archivo/', subir_archivo),
     path('solution', phub_controller, name='solution'),
 ]

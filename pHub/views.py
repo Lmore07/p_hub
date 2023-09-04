@@ -10,7 +10,7 @@ from .classes.service import PHubService
 @csrf_exempt
 def phub_controller(request):
     if request.method == 'POST':
-        files = request.FILES.getlist("files")
+        files = request.FILES.getlist("archivo")
         p_hub_service = PHubService()
         response = p_hub_service.get_solutions_phub(files)
         return JsonResponse(response)
