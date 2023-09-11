@@ -15,24 +15,22 @@ def phub_controller(request):
         p_hub_service = PHubService()
         response = p_hub_service.get_solutions_phub(files)
         
-        coordinates = [{'x': node['coordinates']['x'], 'y': node['coordinates']['y']} for node in response['data']['solucionOptima']['servers'][0]['assignedClients']]
+        coordinates = response['data']['solucionOptima']['servers']
         coordenadas_soluciones_no_funcionadas = []
         
-        for solucion in response['data']["solutiones"]:
-            coordenadas_solucion_actual = []  # Lista para las coordenadas de la solución actual
+        #for solucion in response['data']["solutiones"]:
+         #   coordenadas_solucion_actual = []  # Lista para las coordenadas de la solución actual
 
             # Iterar a través de los servidores en esta solución
-            for servidor in solucion["servers"]:
+          #  for servidor in solucion["servers"]:
                 # Iterar a través de los clientes asignados a este servidor
-                for cliente in servidor["assignedClients"]:
-                    coordenadas = cliente["coordinates"]
-                    coordenadas_solucion_actual.append(coordenadas)
+           #     for cliente in servidor["assignedClients"]:
+            #        coordenadas = cliente["coordinates"]
+             #       coordenadas_solucion_actual.append(coordenadas)
 
             # Agregar las coordenadas de esta solución a la lista general
-            coordenadas_soluciones_no_funcionadas.append(coordenadas_solucion_actual)
-    
-        print(coordenadas_soluciones_no_funcionadas)
-        return render(request, 'grafico.html', {'coordinates': coordinates, 'solucionesNoOptimas': coordenadas_soluciones_no_funcionadas})
+            #coordenadas_soluciones_no_funcionadas.append(coordenadas_solucion_actual)
+        return render(request, 'grafico.html', {'coordinates': coordinates})
         return JsonResponse(response)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)

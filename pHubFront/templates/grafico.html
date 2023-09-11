@@ -1,51 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Gráfico de Coordenadas</title>
     <!-- Incluye la biblioteca de Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Gráfico de Coordenadas</h1>
-    <!-- Canvas donde se renderizará el gráfico (más pequeño) -->
     <canvas id="scatterChart" width="600" height="400"></canvas>
 
     <script>
-        // Coordenadas en el formato proporcionado
-        var soluciones = {{ solucionesNoOptimas|safe }};
-        var solucionOptima = {{ coordinates|safe }}; // Suponiendo que tienes la solución óptima
 
-        // Prepara los datos para el gráfico de dispersión
-        var datasets = [];
-
-        // Solución Óptima en azul
-        var datasetOptimo = {
-            label: 'Solución Óptima',
-            data: solucionOptima,
-            backgroundColor: 'rgba(0, 0, 255, 0.5)', // Color del marcador en azul
-            pointRadius: 5, // Tamaño del marcador
-        };
-        datasets.push(datasetOptimo);
-
-        for (var i = 0; i < soluciones.length; i++) {
-            var coordenadas = soluciones[i];
-            
-            // Colores diferentes para las soluciones no óptimas
-            var color = 'rgba(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ', 0.5)';
-            
-            var dataset = {
-                label: 'Solución ' + (i + 1),
-                data: coordenadas,
-                backgroundColor: color,
-                pointRadius: 5, // Tamaño del marcador
-            };
-            datasets.push(dataset);
+        // Función para generar un color hexadecimal aleatorio
+        function generarColorAleatorio() {
+            const letras = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letras[Math.floor(Math.random() * 16)];
+            }
+            return color;
         }
 
-        var data = {
-            datasets: datasets
+        // Coordenadas en el formato proporcionado
+        //var soluciones = {{ solucionesNoOptimas|safe }};
+        var solucionOptima = {{ coordinates|safe }}; // Suponiendo que tienes la solución óptima
+        console.log(solucionOptima);
+        const datosGrafico = {
+            datasets: []
         };
+
+        for (const servidor of solucionOptima) {
+            // Crear un nuevo conjunto de datos para este servidor
+            const conjuntoDatos = {
+                label: `Server ${servidor.id}`, // Etiqueta para el servidor
+                data: [], // Datos para este servidor
+                pointRadius: 5, // Tamaño del marcador del servidor
+            };
+        
+            // Agregar las coordenadas del servidor si están disponibles
+            if (servidor.coordinates) {
+                conjuntoDatos.backgroundColor=generarColorAleatorio(), // Color del marcador del servidor
+                conjuntoDatos.data.push({
+                    x: servidor.coordinates.x,
+                    y: servidor.coordinates.y
+                });
+            }
+        
+            // Si hay clientes asignados al servidor
+            if (servidor.assignedClients && servidor.assignedClients.length > 0) {
+                for (const cliente of servidor.assignedClients) {
+                    // Agregar las coordenadas del cliente al conjunto de datos del servidor
+                    conjuntoDatos.backgroundColor= generarColorAleatorio(), // Color del marcador del servidor
+                    conjuntoDatos.data.push({
+                        x: cliente.coordinates.x,
+                        y: cliente.coordinates.y
+                    });
+                }
+            }
+        
+            // Agregar este conjunto de datos al array de datasets
+            datosGrafico.datasets.push(conjuntoDatos);
+        }
 
         // Configuración del gráfico
         var options = {
@@ -66,9 +82,10 @@
         var ctx = document.getElementById('scatterChart').getContext('2d');
         var scatterChart = new Chart(ctx, {
             type: 'scatter',
-            data: data,
+            data: datosGrafico,
             options: options
         });
+        console.log(scatterChart.config.data.datasets);
     </script>
-</body>
+  </body>
 </html>
