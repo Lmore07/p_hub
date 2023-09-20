@@ -25,7 +25,7 @@ class PHubService:
 
         return {
             "solucionOptima": self.solution_optimal(solutions),
-            "solutiones": solutions,
+            "solutions": solutions,
         }
 
     def solution_optimal(self, solutions: List[Dict]) -> Dict:

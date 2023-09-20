@@ -1,91 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Gráfico de Coordenadas</title>
-    <!-- Incluye la biblioteca de Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
-    <h1>Gráfico de Coordenadas</h1>
-    <canvas id="scatterChart" width="600" height="400"></canvas>
+    <!-- Incluye la biblioteca de Cytoscape.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+</head>
+<body>
+<h1>Gráfico de Coordenadas</h1>
+<h4>A continuación se muestran los servidores y clientes de la solución óptima</h4>
+<div id="cy" style="width: 1600px; height: 900px;"></div>
+<h1>Solución óptima</h1>
+<div id="contenedor"></div>
+<script>
+    // Supongamos que tenemos el siguiente array de JSON
+    const arrayJSON = {{ coordinates|safe }}['servers'];
 
-    <script>
+    // Obtenemos el elemento HTML donde queremos mostrar el array
+    const contenedor = document.getElementById("contenedor");
 
-        // Función para generar un color hexadecimal aleatorio
-        function generarColorAleatorio() {
-            const letras = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letras[Math.floor(Math.random() * 16)];
+    // Recorremos el array y generamos el contenido HTML
+    let i = 0;
+    arrayJSON.forEach((elemento) => {
+        const parrafoId = document.createElement("p");
+        parrafoId.textContent = `ID: ${elemento.id}`;
+        contenedor.appendChild(parrafoId);
+
+        const parrafoCapacity = document.createElement("p");
+        parrafoCapacity.textContent = `Capacidad: ${elemento.capacity}`;
+        contenedor.appendChild(parrafoCapacity);
+
+        const parrafoAvailableCapacity = document.createElement("p");
+        parrafoAvailableCapacity.textContent = `Capacidad disponible: ${elemento.availableCapacity}`;
+        contenedor.appendChild(parrafoAvailableCapacity);
+
+        const parrafoAssignedClients = document.createElement("p");
+        parrafoAssignedClients.textContent = "Clientes asignados:";
+        contenedor.appendChild(parrafoAssignedClients);
+
+        elemento.assignedClients.forEach((cliente) => {
+            const parrafoCliente = document.createElement("p");
+            parrafoCliente.textContent = `ID: ${cliente.id}, Coordenadas: (${cliente.coordinates.x}, ${cliente.coordinates.y}), Demanda: ${cliente.demand}, Distancia: ${cliente.distance}`;
+            contenedor.appendChild(parrafoCliente);
+        });
+
+        const parrafoTotalDistance = document.createElement("p");
+        parrafoTotalDistance.textContent = `Distancia total: ${elemento.totalDistance}`;
+        contenedor.appendChild(parrafoTotalDistance);
+
+        const parrafoCoordinates = document.createElement("p");
+        parrafoCoordinates.textContent = `Coordenadas: (${elemento.coordinates.x}, ${elemento.coordinates.y})`;
+        contenedor.appendChild(parrafoCoordinates);
+
+        const lineBreak = document.createElement("br");
+        contenedor.appendChild(lineBreak);
+        const line = document.createElement("hr");
+        contenedor.appendChild(line);
+        contenedor.appendChild(lineBreak);
+
+    });
+
+    // Coordenadas en el nuevo formato
+    const data = {{ coordinates|safe }}['servers'];
+    console.log("soluciones:", {{ solutions|safe }})
+    console.log("solución óptima:", {{ coordinates|safe }})
+
+    // Crear un grafo de Cytoscape
+    const cy = cytoscape({
+        container: document.getElementById('cy'), // ID del contenedor
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    //'background-color': 'blue', // Color de los nodos
+                    'label': 'data(id)', // Etiqueta del nodo (mostrará el 'id')
+                    'text-valign': 'center', // Alineación vertical del texto
+                    'text-halign': 'center', // Alineación horizontal del texto
+                    'text-wrap': 'wrap', // Envolver texto si es necesario
+                    'text-max-width': '60px' // Ancho máximo del texto
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1, // Ancho de las aristas
+                    'line-color': 'black' // Color de las aristas
+                }
             }
-            return color;
-        }
+        ]
+    });
 
-        // Coordenadas en el formato proporcionado
-        //var soluciones = {{ solucionesNoOptimas|safe }};
-        var solucionOptima = {{ coordinates|safe }}; // Suponiendo que tienes la solución óptima
-        console.log(solucionOptima);
-        const datosGrafico = {
-            datasets: []
-        };
+    // Recorre los datos y agrega los nodos (servidores y clientes) y las aristas (conexiones)
+    for (const servidor of data) {
+        // Agrega el servidor como nodo
+        cy.add({
+            data: {
+                id: `server${servidor.id}`,
+                label: `Server ${servidor.id}\n(${servidor.coordinates.x}, ${servidor.coordinates.y})` // Muestra el 'id' y las coordenadas
+            }
+        });
 
-        for (const servidor of solucionOptima) {
-            // Crear un nuevo conjunto de datos para este servidor
-            const conjuntoDatos = {
-                label: `Server ${servidor.id}`, // Etiqueta para el servidor
-                data: [], // Datos para este servidor
-                pointRadius: 5, // Tamaño del marcador del servidor
-            };
-        
-            // Agregar las coordenadas del servidor si están disponibles
-            if (servidor.coordinates) {
-                conjuntoDatos.backgroundColor=generarColorAleatorio(), // Color del marcador del servidor
-                conjuntoDatos.data.push({
-                    x: servidor.coordinates.x,
-                    y: servidor.coordinates.y
+        // Si hay clientes asignados al servidor
+        if (servidor.assignedClients && servidor.assignedClients.length > 0) {
+            for (const cliente of servidor.assignedClients) {
+                // Agrega el cliente como nodo
+                cy.add({
+                    data: {
+                        id: `client${cliente.id}`,
+                        label: `Client ${cliente.id}\n(${cliente.coordinates.x}, ${cliente.coordinates.y})` // Muestra el 'id' y las coordenadas
+                    }
+                });
+
+                // Agrega una arista que conecta el servidor con el cliente
+                cy.add({
+                    data: {
+                        source: `server${servidor.id}`,
+                        target: `client${cliente.id}`
+                    }
                 });
             }
-        
-            // Si hay clientes asignados al servidor
-            if (servidor.assignedClients && servidor.assignedClients.length > 0) {
-                for (const cliente of servidor.assignedClients) {
-                    // Agregar las coordenadas del cliente al conjunto de datos del servidor
-                    conjuntoDatos.backgroundColor= generarColorAleatorio(), // Color del marcador del servidor
-                    conjuntoDatos.data.push({
-                        x: cliente.coordinates.x,
-                        y: cliente.coordinates.y
-                    });
-                }
-            }
-        
-            // Agregar este conjunto de datos al array de datasets
-            datosGrafico.datasets.push(conjuntoDatos);
         }
+    }
 
-        // Configuración del gráfico
-        var options = {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'linear',
-                    position: 'bottom'
-                },
-                y: {
-                    type: 'linear',
-                    position: 'left'
-                }
-            }
-        };
-
-        // Crea el gráfico de dispersión
-        var ctx = document.getElementById('scatterChart').getContext('2d');
-        var scatterChart = new Chart(ctx, {
-            type: 'scatter',
-            data: datosGrafico,
-            options: options
-        });
-        console.log(scatterChart.config.data.datasets);
-    </script>
-  </body>
+    // Layout para organizar los nodos (puedes ajustar el layout según tus preferencias)
+    cy.layout({name: 'cose'}).run();
+</script>
+</body>
 </html>

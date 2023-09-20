@@ -15,7 +15,8 @@ def phub_controller(request):
         p_hub_service = PHubService()
         response = p_hub_service.get_solutions_phub(files)
         
-        coordinates = response['data']['solucionOptima']['servers']
+        coordinates = response['data']['solucionOptima']
+        solutions = response['data']['solutions']
         coordenadas_soluciones_no_funcionadas = []
         
         #for solucion in response['data']["solutiones"]:
@@ -30,7 +31,7 @@ def phub_controller(request):
 
             # Agregar las coordenadas de esta solución a la lista general
             #coordenadas_soluciones_no_funcionadas.append(coordenadas_solucion_actual)
-        return render(request, 'grafico.html', {'coordinates': coordinates})
-        return JsonResponse(response)
+        return render(request, 'grafico.html', {'coordinates': coordinates, 'solutions': solutions})
+        #return JsonResponse(response)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
