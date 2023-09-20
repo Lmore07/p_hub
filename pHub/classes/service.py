@@ -11,7 +11,7 @@ class PHubService:
         for file in files:
             content = file.read().decode("utf8")
             map_data = self.mapping_data(content)
-            best_solution = self.get_best_solution(map_data, 20)
+            best_solution = self.get_best_solution(map_data, 1000)
 
         return {"message": "Transacción Exitosa", "data": best_solution}
 
